@@ -81,15 +81,15 @@ MODULE_PARM_DESC(rtw_ips_mode, "The default IPS mode");
 module_param(rtw_lps_level, int, 0644);
 MODULE_PARM_DESC(rtw_lps_level, "The default LPS level");
 
-/* LPS: 
+/* LPS:
  * rtw_smart_ps = 0 => TX: pwr bit = 1, RX: PS_Poll
  * rtw_smart_ps = 1 => TX: pwr bit = 0, RX: PS_Poll
  * rtw_smart_ps = 2 => TX: pwr bit = 0, RX: NullData with pwr bit = 0
 */
 int rtw_smart_ps = 2;
 
-#ifdef CONFIG_WMMPS_STA	
-/* WMMPS: 
+#ifdef CONFIG_WMMPS_STA
+/* WMMPS:
  * rtw_smart_ps = 0 => Only for fw test
  * rtw_smart_ps = 1 => Refer to Beacon's TIM Bitmap
  * rtw_smart_ps = 2 => Don't refer to Beacon's TIM Bitmap
@@ -1290,6 +1290,14 @@ unsigned int rtw_classify8021d(struct sk_buff *skb)
 }
 
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,0))
+static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
+    , struct net_device *sb_dev
+    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,2,0))
+    , select_queue_fallback_t fallback
+    #endif
+)
+#else
 static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
 	, void *accel_priv
@@ -1298,6 +1306,7 @@ static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
 	#endif
 #endif
 )
+#endif
 {
 	_adapter	*padapter = rtw_netdev_priv(dev);
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
